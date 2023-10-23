@@ -21,7 +21,7 @@ from torch.autograd import Variable
 
 import sys
 import numpy as np
-from dnn_models import MLP,flip
+from dnn_models import MLP, flip
 from dnn_models import SincNet as CNN 
 from data_io import ReadList, read_conf, str_to_bool
 
@@ -40,7 +40,7 @@ def create_batches_rnd(
     sig_batch=np.zeros([batch_size, wlen])
     lab_batch=np.zeros(batch_size)
 
-    snt_id_arr=np.random.randint(N_snt, size=batch_size)
+    snt_id_arr=np.random.randint(N_snt, size = batch_size)
 
     rand_amp_arr = np.random.uniform(1.0 - fact_amp, 1 + fact_amp, batch_size)
 
@@ -166,20 +166,20 @@ CNN_arch = {
             'fs': fs,
             'cnn_N_filt': cnn_N_filt,
             'cnn_len_filt': cnn_len_filt,
-            'cnn_max_pool_len':cnn_max_pool_len,
+            'cnn_max_pool_len': cnn_max_pool_len,
             'cnn_use_laynorm_inp': cnn_use_laynorm_inp,
             'cnn_use_batchnorm_inp': cnn_use_batchnorm_inp,
-            'cnn_use_laynorm':cnn_use_laynorm,
-            'cnn_use_batchnorm':cnn_use_batchnorm,
+            'cnn_use_laynorm': cnn_use_laynorm,
+            'cnn_use_batchnorm': cnn_use_batchnorm,
             'cnn_act': cnn_act,
-            'cnn_drop':cnn_drop,
+            'cnn_drop': cnn_drop,
             }
 
 CNN_net = CNN(CNN_arch)
 CNN_net.cuda()
 
 # Loading label dictionary
-lab_dict = np.load(class_dict_file, allow_pickle=True).item()
+lab_dict = np.load(class_dict_file, allow_pickle = True).item()
 
 
 
@@ -190,7 +190,7 @@ DNN1_arch = {
             'fc_use_batchnorm': fc_use_batchnorm,
             'fc_use_laynorm': fc_use_laynorm,
             'fc_use_laynorm_inp': fc_use_laynorm_inp,
-            'fc_use_batchnorm_inp':fc_use_batchnorm_inp,
+            'fc_use_batchnorm_inp': fc_use_batchnorm_inp,
             'fc_act': fc_act,
             }
 
@@ -199,13 +199,13 @@ DNN1_net.cuda()
 
 
 DNN2_arch = {
-            'input_dim':fc_lay[-1] ,
+            'input_dim': fc_lay[-1] ,
             'fc_lay': class_lay,
             'fc_drop': class_drop, 
             'fc_use_batchnorm': class_use_batchnorm,
             'fc_use_laynorm': class_use_laynorm,
             'fc_use_laynorm_inp': class_use_laynorm_inp,
-            'fc_use_batchnorm_inp':class_use_batchnorm_inp,
+            'fc_use_batchnorm_inp': class_use_batchnorm_inp,
             'fc_act': class_act,
             }
 
@@ -222,9 +222,9 @@ if pt_file != 'none':
 
 
 
-optimizer_CNN = optim.RMSprop(CNN_net.parameters(), lr=lr, alpha=0.95, eps=1e-8) 
-optimizer_DNN1 = optim.RMSprop(DNN1_net.parameters(), lr=lr, alpha=0.95, eps=1e-8) 
-optimizer_DNN2 = optim.RMSprop(DNN2_net.parameters(), lr=lr, alpha=0.95, eps=1e-8) 
+optimizer_CNN = optim.RMSprop(CNN_net.parameters(), lr = lr, alpha = 0.95, eps = 1e-8) 
+optimizer_DNN1 = optim.RMSprop(DNN1_net.parameters(), lr = lr, alpha = 0.95, eps = 1e-8) 
+optimizer_DNN2 = optim.RMSprop(DNN2_net.parameters(), lr = lr, alpha = 0.95, eps = 1e-8) 
 
 
 
@@ -251,7 +251,7 @@ for epoch in range(N_epochs):
                                         )
         pout = DNN2_net(DNN1_net(CNN_net(inp)))
 
-        pred = torch.max(pout, dim=1)[1]
+        pred = torch.max(pout, dim = 1)[1]
         loss = cost(pout, lab.long())
         err = torch.mean((pred != lab.long()).float())
 
@@ -307,7 +307,7 @@ for epoch in range(N_epochs):
 
                 sig_arr = torch.zeros([Batch_dev, wlen]).float().cuda().contiguous()
                 lab = Variable((torch.zeros(N_fr + 1) + lab_batch).cuda().contiguous().long())
-                pout = Variable(torch.zeros(N_fr + 1,class_lay[-1]).float().cuda().contiguous())
+                pout = Variable(torch.zeros(N_fr + 1, class_lay[-1]).float().cuda().contiguous())
                 count_fr = 0
                 count_fr_tot = 0
                 while end_samp < signal.shape[0]:
@@ -327,11 +327,11 @@ for epoch in range(N_epochs):
                     pout[count_fr_tot - count_fr:count_fr_tot, :] = DNN2_net(DNN1_net(CNN_net(inp)))
 
     
-                pred = torch.max(pout, dim=1)[1]
+                pred = torch.max(pout, dim = 1)[1]
                 loss = cost(pout, lab.long())
                 err = torch.mean((pred != lab.long()).float())
                 
-                [val, best_class] = torch.max(torch.sum(pout, dim=0), 0)
+                [val, best_class] = torch.max(torch.sum(pout, dim = 0), 0)
                 err_sum_snt = err_sum_snt + (best_class != lab[0]).float()
                 
                 loss_sum = loss_sum + loss.detach()

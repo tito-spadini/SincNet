@@ -11,7 +11,7 @@ def flip(x, dim):
     dim = x.dim() + dim if dim < 0 else dim
     x = x.contiguous()
     x = x.view(-1, *xsize[dim:])
-    x = x.view(x.size(0), x.size(1), -1)[:, getattr(torch.arange(x.size(1) - 1, -1, -1), ('cpu','cuda')[x.is_cuda])().long(), :]
+    x = x.view(x.size(0), x.size(1), -1)[:, getattr(torch.arange(x.size(1) - 1, -1, -1), ('cpu', 'cuda')[x.is_cuda])().long(), :]
     return x.view(xsize)
 
 
@@ -58,15 +58,15 @@ class SincConv_fast(nn.Module):
                     self,
                     out_channels,
                     kernel_size,
-                    sample_rate=16000,
-                    in_channels=1,
-                    stride=1,
-                    padding=0,
-                    dilation=1,
-                    bias=False,
-                    groups=1,
-                    min_low_hz=50,
-                    min_band_hz=50
+                    sample_rate = 16000,
+                    in_channels = 1,
+                    stride = 1,
+                    padding = 0,
+                    dilation = 1,
+                    bias = False,
+                    groups = 1,
+                    min_low_hz = 50,
+                    min_band_hz = 50
                 ):
 
         super(SincConv_fast,self).__init__()
@@ -116,7 +116,7 @@ class SincConv_fast(nn.Module):
 
         # Hamming window
         #self.window_ = torch.hamming_window(self.kernel_size)
-        n_lin = torch.linspace(0, (self.kernel_size / 2) - 1, steps=int((self.kernel_size / 2))) # computing only half of the window
+        n_lin = torch.linspace(0, (self.kernel_size / 2) - 1, steps = int((self.kernel_size / 2))) # computing only half of the window
         self.window_ = 0.54 - 0.46 * torch.cos(2 * math.pi * n_lin / self.kernel_size);
 
 
@@ -144,17 +144,17 @@ class SincConv_fast(nn.Module):
         low = self.min_low_hz + torch.abs(self.low_hz_)
         
         high = torch.clamp(low + self.min_band_hz + torch.abs(self.band_hz_), self.min_low_hz, self.sample_rate / 2)
-        band=(high-low)[:,0]
+        band = (high - low)[:, 0]
         
         f_times_t_low = torch.matmul(low, self.n_)
         f_times_t_high = torch.matmul(high, self.n_)
 
         band_pass_left = ((torch.sin(f_times_t_high) - torch.sin(f_times_t_low)) / (self.n_ / 2)) * self.window_ # Equivalent of Eq.4 of the reference paper (SPEAKER RECOGNITION FROM RAW WAVEFORM WITH SINCNET). I just have expanded the sinc and simplified the terms. This way I avoid several useless computations. 
         band_pass_center = 2 * band.view(-1, 1)
-        band_pass_right = torch.flip(band_pass_left, dims=[1])
+        band_pass_right = torch.flip(band_pass_left, dims = [1])
 
 
-        band_pass=torch.cat([band_pass_left, band_pass_center, band_pass_right], dim=1)
+        band_pass = torch.cat([band_pass_left, band_pass_center, band_pass_right], dim = 1)
 
 
         band_pass = band_pass / (2 * band[:, None])
@@ -166,44 +166,44 @@ class SincConv_fast(nn.Module):
         return F.conv1d(
                         waveforms,
                         self.filters,
-                        stride=self.stride,
-                        padding=self.padding,
-                        dilation=self.dilation,
-                        bias=None,
-                        groups=1
+                        stride = self.stride,
+                        padding = self.padding,
+                        dilation = self.dilation,
+                        bias = None,
+                        groups = 1
                         ) 
 
 
 class sinc_conv(nn.Module):
 
-    def __init__(self, N_filt,Filt_dim,fs):
+    def __init__(self, N_filt, Filt_dim, fs):
         super(sinc_conv,self).__init__()
 
         # Mel Initialization of the filterbanks
         low_freq_mel = 80
         high_freq_mel = (2595 * np.log10(1 + (fs / 2) / 700))  # Convert Hz to Mel
         mel_points = np.linspace(low_freq_mel, high_freq_mel, N_filt)  # Equally spaced in Mel scale
-        f_cos = (700 * (10**(mel_points / 2595) - 1)) # Convert Mel to Hz
-        b1=np.roll(f_cos,1)
-        b2=np.roll(f_cos,-1)
-        b1[0]=30
-        b2[-1]=(fs/2)-100
+        f_cos = (700 * (10 ** (mel_points / 2595) - 1)) # Convert Mel to Hz
+        b1 = np.roll(f_cos, 1)
+        b2 = np.roll(f_cos, -1)
+        b1[0] = 30
+        b2[-1] = (fs / 2) - 100
 
-        self.freq_scale=fs*1.0
-        self.filt_b1 = nn.Parameter(torch.from_numpy(b1/self.freq_scale))
-        self.filt_band = nn.Parameter(torch.from_numpy((b2-b1)/self.freq_scale))
+        self.freq_scale = fs * 1.0
+        self.filt_b1 = nn.Parameter(torch.from_numpy(b1 / self.freq_scale))
+        self.filt_band = nn.Parameter(torch.from_numpy((b2 - b1) / self.freq_scale))
 
 
-        self.N_filt=N_filt
-        self.Filt_dim=Filt_dim
-        self.fs=fs
+        self.N_filt = N_filt
+        self.Filt_dim = Filt_dim
+        self.fs = fs
 
 
     def forward(self, x):
 
         filters = Variable(torch.zeros((self.N_filt, self.Filt_dim))).cuda()
         N = self.Filt_dim
-        t_right = Variable(torch.linspace(1, (N - 1) / 2, steps=int((N - 1) / 2))/self.fs).cuda()
+        t_right = Variable(torch.linspace(1, (N - 1) / 2, steps = int((N - 1) / 2)) / self.fs).cuda()
 
 
         min_freq = 50.0;
@@ -212,7 +212,7 @@ class sinc_conv(nn.Module):
         filt_beg_freq = torch.abs(self.filt_b1) + min_freq / self.freq_scale
         filt_end_freq = filt_beg_freq + (torch.abs(self.filt_band) + min_band / self.freq_scale)
 
-        n=torch.linspace(0, N, steps=N)
+        n=torch.linspace(0, N, steps = N)
 
         # Filter window (hamming)
         window = 0.54 - 0.46 * torch.cos(2 * math.pi * n / N);
@@ -236,39 +236,39 @@ class sinc_conv(nn.Module):
 
 def act_fun(act_type):
 
-    if act_type=="relu":
+    if act_type == "relu":
         return nn.ReLU()
 
-    if act_type=="tanh":
+    if act_type == "tanh":
         return nn.Tanh()
 
-    if act_type=="sigmoid":
+    if act_type == "sigmoid":
         return nn.Sigmoid()
 
-    if act_type=="leaky_relu":
+    if act_type == "leaky_relu":
         return nn.LeakyReLU(0.2)
 
-    if act_type=="elu":
+    if act_type == "elu":
         return nn.ELU()
 
-    if act_type=="softmax":
-        return nn.LogSoftmax(dim=1)
+    if act_type == "softmax":
+        return nn.LogSoftmax(dim = 1)
 
-    if act_type=="linear":
+    if act_type == "linear":
         return nn.LeakyReLU(1) # initializzed like this, but not used in forward!
 
 
 class LayerNorm(nn.Module):
 
-    def __init__(self, features, eps=1e-6):
+    def __init__(self, features, eps = 1e-6):
         super(LayerNorm,self).__init__()
         self.gamma = nn.Parameter(torch.ones(features))
         self.beta = nn.Parameter(torch.zeros(features))
         self.eps = eps
 
     def forward(self, x):
-        mean = x.mean(-1, keepdim=True)
-        std = x.std(-1, keepdim=True)
+        mean = x.mean(-1, keepdim = True)
+        std = x.std(-1, keepdim = True)
         return self.gamma * (x - mean) / (std + self.eps) + self.beta
 
 
@@ -276,18 +276,18 @@ class MLP(nn.Module):
     def __init__(self, options):
         super(MLP, self).__init__()
         
-        self.input_dim=int(options['input_dim'])
-        self.fc_lay=options['fc_lay']
-        self.fc_drop=options['fc_drop']
-        self.fc_use_batchnorm=options['fc_use_batchnorm']
-        self.fc_use_laynorm=options['fc_use_laynorm']
-        self.fc_use_laynorm_inp=options['fc_use_laynorm_inp']
-        self.fc_use_batchnorm_inp=options['fc_use_batchnorm_inp']
-        self.fc_act=options['fc_act']
+        self.input_dim = int(options['input_dim'])
+        self.fc_lay = options['fc_lay']
+        self.fc_drop = options['fc_drop']
+        self.fc_use_batchnorm = options['fc_use_batchnorm']
+        self.fc_use_laynorm = options['fc_use_laynorm']
+        self.fc_use_laynorm_inp = options['fc_use_laynorm_inp']
+        self.fc_use_batchnorm_inp = options['fc_use_batchnorm_inp']
+        self.fc_act = options['fc_act']
 
-        self.wx  = nn.ModuleList([])
-        self.bn  = nn.ModuleList([])
-        self.ln  = nn.ModuleList([])
+        self.wx = nn.ModuleList([])
+        self.bn = nn.ModuleList([])
+        self.ln = nn.ModuleList([])
         self.act = nn.ModuleList([])
         self.drop = nn.ModuleList([])
 
@@ -309,7 +309,7 @@ class MLP(nn.Module):
         for i in range(self.N_fc_lay):
 
             # dropout
-            self.drop.append(nn.Dropout(p=self.fc_drop[i]))
+            self.drop.append(nn.Dropout(p = self.fc_drop[i]))
 
             # activation
             self.act.append(act_fun(self.fc_act[i]))
@@ -318,30 +318,30 @@ class MLP(nn.Module):
 
             # layer norm initialization
             self.ln.append(LayerNorm(self.fc_lay[i]))
-            self.bn.append(nn.BatchNorm1d(self.fc_lay[i], momentum=0.05))
+            self.bn.append(nn.BatchNorm1d(self.fc_lay[i], momentum = 0.05))
 
             if self.fc_use_laynorm[i] or self.fc_use_batchnorm[i]:
-                add_bias=False
+                add_bias = False
 
 
             # Linear operations
-            self.wx.append(nn.Linear(current_input, self.fc_lay[i], bias=add_bias))
+            self.wx.append(nn.Linear(current_input, self.fc_lay[i], bias = add_bias))
 
             # weight initialization
             self.wx[i].weight = torch.nn.Parameter(torch.Tensor(self.fc_lay[i], current_input).uniform_(-np.sqrt(0.01 / (current_input + self.fc_lay[i])), np.sqrt(0.01 / (current_input + self.fc_lay[i]))))
             self.wx[i].bias = torch.nn.Parameter(torch.zeros(self.fc_lay[i]))
 
-            current_input=self.fc_lay[i]
+            current_input = self.fc_lay[i]
 
 
     def forward(self, x):
 
         # Applying Layer/Batch Norm
         if bool(self.fc_use_laynorm_inp):
-            x=self.ln0((x))
+            x = self.ln0((x))
 
         if bool(self.fc_use_batchnorm_inp):
-            x=self.bn0((x))
+            x = self.bn0((x))
 
         for i in range(self.N_fc_lay):
 
@@ -353,7 +353,7 @@ class MLP(nn.Module):
                 if self.fc_use_batchnorm[i]:
                     x = self.drop[i](self.act[i](self.bn[i](self.wx[i](x))))
 
-                if self.fc_use_batchnorm[i]==False and self.fc_use_laynorm[i]==False:
+                if self.fc_use_batchnorm[i] == False and self.fc_use_laynorm[i] == False:
                     x = self.drop[i](self.act[i](self.wx[i](x)))
 
             else:
@@ -363,8 +363,8 @@ class MLP(nn.Module):
                 if self.fc_use_batchnorm[i]:
                     x = self.drop[i](self.bn[i](self.wx[i](x)))
 
-                if self.fc_use_batchnorm[i]==False and self.fc_use_laynorm[i]==False:
-                    x = self.drop[i](self.wx[i](x)) 
+                if self.fc_use_batchnorm[i] == False and self.fc_use_laynorm[i] == False:
+                    x = self.drop[i](self.wx[i](x))
 
         return x
 
@@ -404,7 +404,7 @@ class SincNet(nn.Module):
             self.ln0 = LayerNorm(self.input_dim)
 
         if self.cnn_use_batchnorm_inp:
-            self.bn0 = nn.BatchNorm1d([self.input_dim], momentum=0.05)
+            self.bn0 = nn.BatchNorm1d([self.input_dim], momentum = 0.05)
 
         current_input = self.input_dim 
 
@@ -414,7 +414,7 @@ class SincNet(nn.Module):
             len_filt = int(self.cnn_len_filt[i])
 
             # dropout
-            self.drop.append(nn.Dropout(p=self.cnn_drop[i]))
+            self.drop.append(nn.Dropout(p = self.cnn_drop[i]))
 
             # activation
             self.act.append(act_fun(self.cnn_act[i]))
@@ -422,10 +422,10 @@ class SincNet(nn.Module):
             # layer norm initialization         
             self.ln.append(LayerNorm([N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i])]))
 
-            self.bn.append(nn.BatchNorm1d(N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i]), momentum=0.05))
+            self.bn.append(nn.BatchNorm1d(N_filt, int((current_input - self.cnn_len_filt[i] + 1) / self.cnn_max_pool_len[i]), momentum = 0.05))
 
 
-            if i==0:
+            if i == 0:
                 self.conv.append(SincConv_fast(self.cnn_N_filt[0], self.cnn_len_filt[0], self.fs))
 
             else:
@@ -454,7 +454,7 @@ class SincNet(nn.Module):
         for i in range(self.N_cnn_lay):
 
             if self.cnn_use_laynorm[i]:
-                if i==0:
+                if i == 0:
                     x = self.drop[i](self.act[i](self.ln[i](F.max_pool1d(torch.abs(self.conv[i](x)), self.cnn_max_pool_len[i]))))  
                 else:
                     x = self.drop[i](self.act[i](self.ln[i](F.max_pool1d(self.conv[i](x), self.cnn_max_pool_len[i]))))   

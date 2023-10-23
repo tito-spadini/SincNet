@@ -44,7 +44,7 @@ def copy_dirs(src, dst):
         for dir in dirs:
             src_dir = os.path.join(root, dir)
             dst_dir = os.path.join(dst, os.path.relpath(src_dir, src))
-            os.makedirs(dst_dir, exist_ok=True)
+            os.makedirs(dst_dir, exist_ok = True)
 
 
 

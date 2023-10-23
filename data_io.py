@@ -101,7 +101,7 @@ def create_batches_rnd(
     sig_batch = np.zeros([batch_size, wlen])
     lab_batch = np.zeros(batch_size)
 
-    snt_id_arr = np.random.randint(N_snt, size=batch_size)
+    snt_id_arr = np.random.randint(N_snt, size = batch_size)
     
     rand_amp_arr = np.random.uniform(1.0 - fact_amp, 1 + fact_amp, batch_size)
 

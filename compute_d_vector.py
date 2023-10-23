@@ -105,13 +105,13 @@ CNN_arch = {
             'fs': fs,
             'cnn_N_filt': cnn_N_filt,
             'cnn_len_filt': cnn_len_filt,
-            'cnn_max_pool_len':cnn_max_pool_len,
+            'cnn_max_pool_len': cnn_max_pool_len,
             'cnn_use_laynorm_inp': cnn_use_laynorm_inp,
             'cnn_use_batchnorm_inp': cnn_use_batchnorm_inp,
-            'cnn_use_laynorm':cnn_use_laynorm,
-            'cnn_use_batchnorm':cnn_use_batchnorm,
+            'cnn_use_laynorm': cnn_use_laynorm,
+            'cnn_use_batchnorm': cnn_use_batchnorm,
             'cnn_act': cnn_act,
-            'cnn_drop':cnn_drop,
+            'cnn_drop': cnn_drop,
             }
 
 CNN_net = CNN(CNN_arch)
@@ -126,7 +126,7 @@ DNN1_arch = {
                 'fc_use_batchnorm': fc_use_batchnorm,
                 'fc_use_laynorm': fc_use_laynorm,
                 'fc_use_laynorm_inp': fc_use_laynorm_inp,
-                'fc_use_batchnorm_inp':fc_use_batchnorm_inp,
+                'fc_use_batchnorm_inp': fc_use_batchnorm_inp,
                 'fc_act': fc_act,
             }
 
@@ -135,7 +135,7 @@ DNN1_net.to(device)
 
 
 DNN2_arch = {
-                'input_dim':fc_lay[-1],
+                'input_dim': fc_lay[-1],
                 'fc_lay': class_lay,
                 'fc_drop': class_drop,
                 'fc_use_batchnorm': class_use_batchnorm,
@@ -235,10 +235,10 @@ with torch.no_grad():
             dvects[count_fr_tot - count_fr:count_fr_tot, :] = DNN1_net(CNN_net(inp))
         
         if avoid_small_en_fr:
-            dvects = dvects.index_select(0, (en_arr_bin==1).nonzero().view(-1))
+            dvects = dvects.index_select(0, (en_arr_bin == 1).nonzero().view(-1))
 
         # averaging and normalizing all the d-vectors
-        d_vect_out = torch.mean(dvects / dvects.norm(p=2, dim=1).view(-1, 1), dim=0)
+        d_vect_out = torch.mean(dvects / dvects.norm(p = 2, dim = 1).view(-1, 1), dim = 0)
         
         # checks for nan
         nan_sum = torch.sum(torch.isnan(d_vect_out))
