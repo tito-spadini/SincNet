@@ -1,0 +1,6 @@
+# Folders
+models/*
+
+# Files
+*.wav
+*.pyc
