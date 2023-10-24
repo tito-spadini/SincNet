@@ -5,7 +5,7 @@ import scipy.io.wavfile
 import torch
 
 def ReadList(list_file):
-    f = open(list_file,"r")
+    f = open(list_file, "r")
     lines = f.readlines()
     list_sig = []
     for x in lines:

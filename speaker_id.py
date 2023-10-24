@@ -37,10 +37,10 @@ def create_batches_rnd(
                         ):
 
     # Initialization of the minibatch (batch_size,[0=>x_t,1=>x_t+N,1=>random_samp])
-    sig_batch=np.zeros([batch_size, wlen])
-    lab_batch=np.zeros(batch_size)
+    sig_batch = np.zeros([batch_size, wlen])
+    lab_batch = np.zeros(batch_size)
 
-    snt_id_arr=np.random.randint(N_snt, size = batch_size)
+    snt_id_arr = np.random.randint(N_snt, size = batch_size)
 
     rand_amp_arr = np.random.uniform(1.0 - fact_amp, 1 + fact_amp, batch_size)
 

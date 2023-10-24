@@ -15,9 +15,9 @@ def flip(x, dim):
     return x.view(xsize)
 
 
-def sinc(band,t_right):
+def sinc(band, t_right):
     y_right = torch.sin(2 * math.pi * band * t_right) / (2 * math.pi * band * t_right)
-    y_left = flip(y_right,0)
+    y_left = flip(y_right, 0)
 
     y = torch.cat([y_left, Variable(torch.ones(1)).cuda(), y_right])
 
@@ -171,7 +171,7 @@ class SincConv_fast(nn.Module):
                         dilation = self.dilation,
                         bias = None,
                         groups = 1
-                        ) 
+                        )
 
 
 class sinc_conv(nn.Module):
@@ -212,7 +212,7 @@ class sinc_conv(nn.Module):
         filt_beg_freq = torch.abs(self.filt_b1) + min_freq / self.freq_scale
         filt_end_freq = filt_beg_freq + (torch.abs(self.filt_band) + min_band / self.freq_scale)
 
-        n=torch.linspace(0, N, steps = N)
+        n = torch.linspace(0, N, steps = N)
 
         # Filter window (hamming)
         window = 0.54 - 0.46 * torch.cos(2 * math.pi * n / N);
@@ -261,7 +261,7 @@ def act_fun(act_type):
 class LayerNorm(nn.Module):
 
     def __init__(self, features, eps = 1e-6):
-        super(LayerNorm,self).__init__()
+        super(LayerNorm, self).__init__()
         self.gamma = nn.Parameter(torch.ones(features))
         self.beta = nn.Parameter(torch.zeros(features))
         self.eps = eps
@@ -372,8 +372,8 @@ class MLP(nn.Module):
 
 class SincNet(nn.Module):
     
-    def __init__(self,options):
-        super(SincNet,self).__init__()
+    def __init__(self, options):
+        super(SincNet, self).__init__()
         
         self.cnn_N_filt = options['cnn_N_filt']
         self.cnn_len_filt = options['cnn_len_filt']

@@ -16,7 +16,7 @@ from torch.autograd import Variable
 import numpy as np
 from dnn_models import MLP
 from dnn_models import SincNet as CNN 
-from data_io import ReadList,read_conf_inp,str_to_bool
+from data_io import ReadList, read_conf_inp, str_to_bool
 import sys
 
 # Model to use for computing the d-vectors
@@ -214,8 +214,8 @@ with torch.no_grad():
         N_fr = int((signal.shape[0] - wlen) / (wshift))
 
     
-        sig_arr = torch.zeros([Batch_dev,wlen]).float().to(device).contiguous()
-        dvects = Variable(torch.zeros(N_fr,d_vector_dim).float().to(device).contiguous())
+        sig_arr = torch.zeros([Batch_dev, wlen]).float().to(device).contiguous()
+        dvects = Variable(torch.zeros(N_fr, d_vector_dim).float().to(device).contiguous())
         count_fr = 0
         count_fr_tot = 0
         while end_samp < signal.shape[0]:
