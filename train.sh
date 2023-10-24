@@ -1,0 +1,1 @@
+python speaker_id.py --cfg=cfg/SincNet_TIMIT.cfg

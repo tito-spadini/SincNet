@@ -1,0 +1,1 @@
+python TIMIT_preparation.py ~/datasets/TIMIT ./norm_data ./data_lists/TIMIT_all.scp
