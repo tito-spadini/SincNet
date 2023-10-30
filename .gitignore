@@ -1,5 +1,6 @@
 # Folders
 models/*
+preparation_scripts/*
 
 # Files
 *.wav
