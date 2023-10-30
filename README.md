@@ -7,7 +7,7 @@ This is a still under development adaptation of the [SincNet](https://github.com
 - Pytorch
 - Soundfile
 
-## Suggested steps
+## How to run
 Update the permissions for .sh files in SincNet folder.
 ```bash
 chmod +x *.sh
